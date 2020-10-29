@@ -5,7 +5,7 @@
 
 
     <select id="getMaxID" resultType="java.lang.Integer">
-        SELECT MAX(`member_id`) FROM `member`
+        SELECT MAX(`id`) FROM `customer_info`
     </select>
 
 </mapper>

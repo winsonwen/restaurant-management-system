@@ -4,11 +4,13 @@ spring:
   datasource:
     username: root
     password: root
-    url: jdbc:mysql://172.31.8.234:9005/Restaurant?userUnicode=true&characterEncoding=utf8
+#    url: jdbc:mysql://18.218.131.147:9005/Restaurant?userUnicode=true&characterEncoding=utf8
+    url: jdbc:mysql://127.0.0.1:9005/Restaurant?userUnicode=true&characterEncoding=utf8
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   redis:
-    host: 172.31.8.234
+    host: 127.0.0.1
+#    host: 18.218.131.147
     port: 6379
 
   session:
@@ -22,7 +24,7 @@ server:
   port: 9001
   servlet:
     session:
-      timeout: 86400m
+      timeout: 86400
 
 
 mybatis-plus:

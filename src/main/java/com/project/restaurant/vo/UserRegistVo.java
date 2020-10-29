@@ -25,7 +25,6 @@ public class UserRegistVo {
 
     private String passwords;
 
-
     private int memberId;
     private int employeeId;
 

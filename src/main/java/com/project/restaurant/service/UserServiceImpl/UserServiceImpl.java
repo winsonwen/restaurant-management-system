@@ -46,13 +46,17 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserRegistVo> implemen
 
         if (mobile != 0) {
             Map<String, String> error = new HashMap<>();
-            error.put("userName","User Name exist");
-            return R.error(401,"Error").setData(error);
+            error.put("userName", "User Name exist");
+            return R.error(401, "Error").setData(error);
         }
 
-        int result;
-        memberDao.insert(mvo);
-        result = memberDao.getMaxID();
+        int result = 0;
+        try {
+            memberDao.insert(mvo);
+            result = memberDao.getMaxID();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         if (result == 0) {
             throw new Exception();
         }
@@ -73,6 +77,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserRegistVo> implemen
     public R loginRequest(UserLoginVo vo) {
 
         UserRegistVo userRegistVo = baseMapper.selectOne(new QueryWrapper<UserRegistVo>().eq("user_name", vo.getUserName()));
+
+
         if (userRegistVo == null) {
             return null;
         } else {
@@ -81,21 +87,31 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserRegistVo> implemen
 //            if (bCryptPasswordEncoder.matches(vo.getPasswords(), password1)) {
 
             if (vo.getPasswords().equals(password1)) {
-                if(userRegistVo.getEmployeeId()!=0){
-
+                if (userRegistVo.getEmployeeId() != 0) {
                     EmployeeVo employeeVo = employeeDao.selectById(userRegistVo.getEmployeeId());
-                    if(employeeVo!=null)
+                    if (employeeVo != null)
                         return R.ok().setData(employeeVo).put("result", 2);
 
-                }else if(userRegistVo.getMemberId()!=0){
+                } else if (userRegistVo.getMemberId() != 0) {
                     MemberInfoVo memberInfoVo = memberDao.selectById(userRegistVo.getMemberId());
-                    if(memberInfoVo!=null)
+                    if (memberInfoVo != null)
                         return R.ok().setData(memberInfoVo).put("result", 1);
                 }
             }
         }
 
 
-        return null;
+        return R.ok().put("result", 3);
+    }
+
+    @Override
+    public int updateDeliveryInfo(EmployeeVo updateVo, EmployeeVo existVo) {
+
+        existVo.setFirstName(updateVo.getFirstName());
+        existVo.setLastName(updateVo.getLastName());
+        existVo.setPhone(updateVo.getPhone());
+        existVo.setEmail(updateVo.getEmail());
+
+        return employeeDao.updateById(existVo);
     }
 }
