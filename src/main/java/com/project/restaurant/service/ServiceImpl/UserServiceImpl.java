@@ -1,21 +1,21 @@
-package com.project.restaurant.service.UserServiceImpl;
+package com.project.restaurant.service.ServiceImpl;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.project.restaurant.R;
+import com.project.restaurant.dao.DeliverOrderDao;
 import com.project.restaurant.dao.EmployeeDao;
 import com.project.restaurant.dao.MemberDao;
 import com.project.restaurant.dao.UserDao;
 import com.project.restaurant.service.UserService;
-import com.project.restaurant.vo.EmployeeVo;
-import com.project.restaurant.vo.MemberInfoVo;
-import com.project.restaurant.vo.UserLoginVo;
-import com.project.restaurant.vo.UserRegistVo;
+import com.project.restaurant.vo.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +29,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserRegistVo> implemen
     UserDao userDao;
     @Resource
     EmployeeDao employeeDao;
+    @Resource
+    DeliverOrderDao deliverOrderDao;
 
     /**
      * Update new User infomation
@@ -113,5 +115,60 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserRegistVo> implemen
         existVo.setEmail(updateVo.getEmail());
 
         return employeeDao.updateById(existVo);
+    }
+
+    @Override
+    public int updateUserInfo(MemberInfoVo updateVo, MemberInfoVo existVo) {
+        existVo.setFirstName(updateVo.getFirstName());
+        existVo.setLastName(updateVo.getLastName());
+        existVo.setPhone(updateVo.getPhone());
+        existVo.setEmail(updateVo.getEmail());
+
+        return memberDao.updateById(existVo);
+    }
+
+    @Override
+    public synchronized int  updateDeliveryManLocation(LocationVo locationVo, EmployeeVo existVo) {
+
+//        System.out.println(existVo.getId());
+        // if locationVo is existed in database
+        Integer count = deliverOrderDao.selectCount(new QueryWrapper<LocationVo>().eq("staff_id", existVo.getId()));
+
+        if (count>0){
+            LocationVo objects = deliverOrderDao.selectOne(new QueryWrapper<LocationVo>().eq("staff_id", existVo.getId()));
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date date=new Date();
+
+            try {
+                objects.setId(existVo.getId());
+                objects.setTimestamp(simpleDateFormat.parse(simpleDateFormat.format(date)));
+                objects.setLatitude(locationVo.getLatitude());
+                objects.setLongitude(locationVo.getLongitude());
+                deliverOrderDao.updateById(objects);
+                return 1;
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return 0;
+            }
+
+        }else{
+            // locationVo not exist in database
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date date=new Date();
+            try {
+
+                locationVo.setStaff_id(existVo.getId());
+                locationVo.setTimestamp(simpleDateFormat.parse(simpleDateFormat.format(date)));
+                deliverOrderDao.insert(locationVo);
+                return 1;
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return 0;
+            }
+
+
+        }
+
+
     }
 }

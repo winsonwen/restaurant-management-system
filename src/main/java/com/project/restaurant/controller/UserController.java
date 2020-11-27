@@ -5,7 +5,9 @@ package com.project.restaurant.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.project.restaurant.R;
+import com.project.restaurant.config.RestaurantInterceptor;
 import com.project.restaurant.constant.MemberConstant;
+import com.project.restaurant.dao.DeliverOrderDao;
 import com.project.restaurant.service.UserService;
 import com.project.restaurant.vo.*;
 import org.springframework.beans.BeanUtils;
@@ -35,6 +37,7 @@ public class UserController {
     @Resource
     StringRedisTemplate stringRedisTemplate;
 
+
     @PostMapping("/login")
     public R userLogin(@RequestBody UserLoginVo vo, HttpSession session) {
         System.out.println(111);
@@ -63,7 +66,7 @@ public class UserController {
                 session.setAttribute(MemberConstant.LOGIN_USER, employeeVo);   //set session
                 EmployeeVo employeeVo1 = new EmployeeVo();
                 BeanUtils.copyProperties(employeeVo,employeeVo1);
-                employeeVo1.setId("");
+                employeeVo1.setId(0);
                 employeeVo1.setSsn("");
                 employeeVo1.setParentId(0);
                 return R.ok().put("type","2").put("employeeInfo", employeeVo1);
@@ -123,7 +126,31 @@ public class UserController {
     }
 
     @PostMapping("/update_delivery_info")
-    public R deliveryUpdate(@Valid @RequestBody EmployeeVo updateVo, BindingResult result,HttpServletRequest request ) {
+    public R deliveryUpdate(@Valid @RequestBody EmployeeVo updateVo, BindingResult result) {
+        if (result.hasErrors()) {
+            Map<String, String> error = new HashMap<>();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                if (!error.containsKey(fieldError.getField())) {
+                    error.put(fieldError.getField(), fieldError.getDefaultMessage());
+                }
+            }
+            System.out.println(error);
+            return R.error(101,"Error").setData(error);
+        }
+
+
+        int i = userService.updateDeliveryInfo(updateVo, RestaurantInterceptor.staffThreadLocal.get());
+
+        R r = new R();
+        if(i==1)
+            return r.ok().setData(updateVo);
+        else
+            return R.error(102,"Update fail. Ple contact to admin");
+    }
+
+    @PostMapping("/update_user_info")
+    public R userUpdate(@Valid @RequestBody MemberInfoVo updateVo, BindingResult result) {
 
         if (result.hasErrors()) {
             Map<String, String> error = new HashMap<>();
@@ -137,15 +164,23 @@ public class UserController {
             return R.error(101,"Error").setData(error);
         }
 
-        EmployeeVo existVo = (EmployeeVo) request.getSession().getAttribute(MemberConstant.LOGIN_USER);
-
-        int i = userService.updateDeliveryInfo(updateVo, existVo);
+        int i = userService.updateUserInfo(updateVo, RestaurantInterceptor.memberThreadLocal.get());
 
         R r = new R();
         if(i==1)
             return r.ok().setData(updateVo);
         else
             return R.error(102,"Update fail. Ple contact to admin");
+    }
+    
+    @PostMapping("/updateDeliveryManLocation")
+    public R updateDeliveryManLocation( @RequestBody LocationVo locationVo){
+
+        int result = userService.updateDeliveryManLocation(locationVo, RestaurantInterceptor.staffThreadLocal.get());
+        if(result==1) {
+            return R.ok();
+        }
+      return   R.error(404, "Update Info error");
     }
 
 }

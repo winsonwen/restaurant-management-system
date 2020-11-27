@@ -1,4 +1,4 @@
-package com.project.restaurant.service.UserServiceImpl;
+package com.project.restaurant.service.ServiceImpl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.project.restaurant.dao.MemberDao;

@@ -22,7 +22,7 @@ import java.util.Date;
 public class EmployeeVo implements Serializable {
 
     @TableId
-    String id;
+    int id;
 
 
     @NotEmpty(message = "First Name should be submitted")
