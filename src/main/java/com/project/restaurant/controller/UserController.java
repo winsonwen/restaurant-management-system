@@ -40,13 +40,12 @@ public class UserController {
 
     @PostMapping("/login")
     public R userLogin(@RequestBody UserLoginVo vo, HttpSession session) {
-        System.out.println(111);
         R result = userService.loginRequest(vo);
         if(result==null)
             return R.error(402,"Account Not Exists");
 
         int resultNum = (int)result.get("result");   // 2->employee   1->customer
-        System.out.println(resultNum);
+
         if (resultNum==1){
             MemberInfoVo memberInfoVo = result.getData(new TypeReference<MemberInfoVo>(){});
             if(memberInfoVo!=null){
